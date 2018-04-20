@@ -15,7 +15,7 @@ import pylab as plt
 #from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cross_validation import cross_val_score
 import matplotlib.pyplot as plta
-
+from sklearn.grid_search import RandomizedSearchCV
 
 
 def image_to_feature_vector(image, size=(128, 128)):
@@ -63,7 +63,7 @@ for folder in folders:
     for f in glob.glob(folder+'/*.jpg'):
         imagenames__list.append(f)
         image=cv2.imread(f)
-        plt.imshow(image)
+        #plt.imshow(image)
         a=os.path.basename(folder)
         class_names.append(a)
         
@@ -86,8 +86,8 @@ for folder in folders:
 		    # print("[INFO] processed {}/{}".format(i+1, len(imagePaths)))
 
 			
-print(class_names)
-print(f)			
+#print(class_names)
+#print(f)			
 rawImages = np.array(rawImages)
 print(len(rawImages))
 features = np.array(features)
@@ -112,11 +112,41 @@ print("[INFO] features matrix: {:.2f}MB".format(
 # k-NN
 print("\n")
 print("[INFO] evaluating raw pixel accuracy...")
-model = KNeighborsClassifier(n_neighbors=15)
-model.fit(trainRI, trainRL)
-acc = model.score(testRI, testRL)
+knn1 = KNeighborsClassifier(n_neighbors=15)
+knn1.fit(trainRI, trainRL)
+acc = knn1.score(testRI, testRL)
 #print("[INFO] k-NN classifier: k=%d" % args["neighbors"])
 print("[INFO] raw pixel accuracy: {:.2f}%".format(acc * 100))
+k_range = list(range(1, 31))
+weight_options = ['uniform', 'distance']
+# specify "parameter distributions" rather than a "parameter grid"
+param_dist = dict(n_neighbors=k_range, weights=weight_options)
+# n_iter controls the number of searches
+rand = RandomizedSearchCV(knn1, param_dist, cv=3, scoring='accuracy', n_iter=10,n_jobs=-1, random_state=5)
+rand.fit(rawImages, class_names)
+rand.grid_scores_
+# examine the best model
+print(rand.best_score_)
+print(rand.best_params_)
+# run RandomizedSearchCV 20 times (with n_iter=10) and record the best score
+best_scores = []
+for _ in range(20):
+    rand = RandomizedSearchCV(knn1, param_dist, cv=3, scoring='accuracy', n_iter=10,n_jobs=-1)
+    rand.fit(rawImages, class_names)
+    best_scores.append(round(rand.best_score_, 3))
+print(best_scores)
+#predict function 
+
+raw_predict=[]
+predict_image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
+predict_features=image_to_feature_vector(predict_image)
+raw_predict.append(predict_features)
+raw_predict=np.array(raw_predict)
+knn1.predict(raw_predict)
+
+
+
+
 
 
 #scores = cross_val_score(model, rawImages, class_names, cv=3, scoring='accuracy')
@@ -134,12 +164,36 @@ print("[INFO] raw pixel accuracy: {:.2f}%".format(acc * 100))
 # k-NN
 print("\n")
 print("[INFO] evaluating histogram accuracy...")
-model = KNeighborsClassifier(n_neighbors=5)
-model.fit(trainFeat, trainLabels)
-acc = model.score(testFeat, testLabels)
+knn2 = KNeighborsClassifier(n_neighbors=22)
+knn2.fit(trainFeat, trainLabels)
+acc = knn2.score(testFeat, testLabels)
 #print("[INFO] k-NN classifier: k=%d" % args["neighbors"])
 print("[INFO] histogram accuracy: {:.2f}%".format(acc * 100))	
+k_range = list(range(1, 31))
+weight_options = ['uniform', 'distance']
+# specify "parameter distributions" rather than a "parameter grid"
+param_dist = dict(n_neighbors=k_range, weights=weight_options)
+# n_iter controls the number of searches
+rand = RandomizedSearchCV(knn2, param_dist, cv=3, scoring='accuracy', n_iter=10,n_jobs=-1, random_state=5)
+rand.fit(features, class_names)
+rand.grid_scores_
+# examine the best model
+print(rand.best_score_)
+print(rand.best_params_)
+# run RandomizedSearchCV 20 times (with n_iter=10) and record the best score
+best_scores = []
+for _ in range(20):
+    rand = RandomizedSearchCV(knn2, param_dist, cv=3, scoring='accuracy', n_iter=10,n_jobs=-1)
+    rand.fit(rawImages, class_names)
+    best_scores.append(round(rand.best_score_, 3))
+print(best_scores)
 
+hist_predict=[]
+predict_image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
+predict_features=extract_color_histogram(predict_image)
+hist_predict.append(predict_features)
+hist_predict=np.array(hist_predict)
+knn2.predict(hist_predict)
 
 #scores = cross_val_score(model, features, class_names, cv=3, scoring='accuracy')
 #print(scores)
@@ -154,47 +208,74 @@ print("[INFO] histogram accuracy: {:.2f}%".format(acc * 100))
 #plta.xlabel('Value of K for KNN')
 #plta.ylabel('Cross-Validated Accuracy')
 
-k_range = list(range(1, 31))
-weight_options = ['uniform', 'distance']
-
-
-from sklearn.grid_search import RandomizedSearchCV
-# specify "parameter distributions" rather than a "parameter grid"
-param_dist = dict(n_neighbors=k_range, weights=weight_options)
-# n_iter controls the number of searches
-rand = RandomizedSearchCV(model, param_dist, cv=3, scoring='accuracy', n_iter=10,n_jobs=-1, random_state=5)
-rand.fit(rawImages, class_names)
-rand.grid_scores_
-# examine the best model
-print(rand.best_score_)
-print(rand.best_params_)
-# run RandomizedSearchCV 20 times (with n_iter=10) and record the best score
-best_scores = []
-for _ in range(20):
-    rand = RandomizedSearchCV(model, param_dist, cv=10, scoring='accuracy', n_iter=10,n_jobs=-1)
-    rand.fit(rawImages, class_names)
-    best_scores.append(round(rand.best_score_, 3))
-print(best_scores)
 
 
 
+from sklearn.grid_search import GridSearchCV
 
 
 #SVC
 print("\n")
 print("[INFO] evaluating raw pixel accuracy...")
-model = SVC(max_iter=1000,class_weight='balanced')
-model.fit(trainRI, trainRL)
-acc = model.score(testRI, testRL)
+SVC1 = SVC(max_iter=1000,class_weight='balanced')
+SVC1.fit(trainRI, trainRL)
+acc = SVC1.score(testRI, testRL)
 print("[INFO] SVM-SVC raw pixel accuracy: {:.2f}%".format(acc * 100))
+
+kernel_options=['rbf','linear','poly']
+param_grid=dict(kernel=kernel_options)
+grid = GridSearchCV(SVC1, param_grid, cv=3, scoring='accuracy',n_jobs=-1)
+grid.fit(rawImages, class_names)
+print(grid.best_score_)
+print(grid.best_params_)
+print(grid.best_estimator_)
+
+
+
+
+
+raw_predict=[]
+predict_image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
+predict_features=image_to_feature_vector(predict_image)
+raw_predict.append(predict_features)
+raw_predict=np.array(raw_predict)
+SVC1.predict(raw_predict)
+#rand = RandomizedSearchCV(SVC1, param_dist, cv=3, scoring='accuracy', n_iter=10,n_jobs=-1, random_state=5)
+#rand.fit(rawImages, class_names)
+#rand.grid_scores_
+## examine the best model
+#print(rand.best_score_)
+#print(rand.best_params_)
+
+
+
+
 #SVC
 print("\n")
 print("[INFO] evaluating histogram accuracy...")
-model = SVC(max_iter=1000,class_weight='balanced')
-model.fit(trainFeat, trainLabels)
-acc = model.score(testFeat, testLabels)
+SVC2 = SVC(max_iter=1000,class_weight='balanced')
+SVC2.fit(trainFeat, trainLabels)
+acc = SVC2.score(testFeat, testLabels)
 print("[INFO] SVM-SVC histogram accuracy: {:.2f}%".format(acc * 100))
+kernel_options=['rbf','linear','poly']
+param_grid=dict(kernel=kernel_options)
+grid = GridSearchCV(SVC1, param_grid, cv=3, scoring='accuracy',n_jobs=-1)
+grid.fit(rawImages, class_names)
+print(grid.best_score_)
+print(grid.best_params_)
+print(grid.best_estimator_)
 
+
+
+
+
+
+hist_predict=[]
+predict_image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
+predict_features=extract_color_histogram(predict_image)
+hist_predict.append(predict_features)
+hist_predict=np.array(hist_predict)
+SVC2.predict(hist_predict)
 #plt.imshow(read_images[1])
 #implementing grid search for raw pixel intensities
 
