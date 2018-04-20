@@ -135,11 +135,20 @@ for _ in range(20):
     rand.fit(rawImages, class_names)
     best_scores.append(round(rand.best_score_, 3))
 print(best_scores)
+
+
+
+
+
+
+
+
+
 #predict function 
 
 raw_predict=[]
-predict_image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
-predict_features=image_to_feature_vector(predict_image)
+image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
+predict_features=image_to_feature_vector(image)
 raw_predict.append(predict_features)
 raw_predict=np.array(raw_predict)
 knn1.predict(raw_predict)
@@ -189,8 +198,8 @@ for _ in range(20):
 print(best_scores)
 
 hist_predict=[]
-predict_image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
-predict_features=extract_color_histogram(predict_image)
+image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
+predict_features=extract_color_histogram(image)
 hist_predict.append(predict_features)
 hist_predict=np.array(hist_predict)
 knn2.predict(hist_predict)
@@ -235,8 +244,8 @@ print(grid.best_estimator_)
 
 
 raw_predict=[]
-predict_image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
-predict_features=image_to_feature_vector(predict_image)
+image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
+predict_features=image_to_feature_vector(image)
 raw_predict.append(predict_features)
 raw_predict=np.array(raw_predict)
 SVC1.predict(raw_predict)
@@ -271,8 +280,8 @@ print(grid.best_estimator_)
 
 
 hist_predict=[]
-predict_image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
-predict_features=extract_color_histogram(predict_image)
+image=cv2.imread('C:\\Users\\KIRTI JOSHI\\Desktop\\445014.jpg')
+predict_features=extract_color_histogram(image)
 hist_predict.append(predict_features)
 hist_predict=np.array(hist_predict)
 SVC2.predict(hist_predict)
@@ -297,7 +306,7 @@ SVC2.predict(hist_predict)
 
 
 
-
+#hahahahahahahahahahahahahahah
 
 
 
